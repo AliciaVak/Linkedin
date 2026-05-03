@@ -215,6 +215,8 @@ class LinkedInBrowser:
                         return dropdown
                     await page.keyboard.press("Escape")
                     await asyncio.sleep(0.3)
+            else:
+                logger.info(f"  Card <li> not found for slug '{slug}' ({name})")
 
         name_css = name.replace("'", "\\'")
         for selector in [
@@ -309,9 +311,15 @@ class LinkedInBrowser:
         logger.info(f"Company people page: {company} / '{title}'")
         try:
             await page.goto(url, timeout=20_000)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"  Navigation failed for {company}: {e}")
         await self._wait_for_results(page)
+
+        current_url = page.url
+        if f"/company/{slug}" not in current_url:
+            logger.warning(f"  Wrong page after navigation (expected /company/{slug}, got {current_url}) — skipping.")
+            return
+
         await self._scroll_to_load(page)
         people = await self._scrape_page(page)
 
@@ -323,9 +331,13 @@ class LinkedInBrowser:
             )
             try:
                 await page.goto(kw_url, timeout=20_000)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"  Keyword search navigation failed: {e}")
+                return
             await self._wait_for_results(page)
+            if "/search/results/people" not in page.url:
+                logger.warning(f"  Wrong page after keyword search — skipping.")
+                return
             await self._scroll_to_load(page)
             people = await self._scrape_page(page)
 
