@@ -1,0 +1,15 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+state.json
+*.log
+.DS_Store
+.browser_profile/
+.linkedin_cookies.json
+connections.db
+exports/
+.idea/
+.claude/
